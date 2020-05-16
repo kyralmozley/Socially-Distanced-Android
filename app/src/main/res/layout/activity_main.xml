@@ -6,20 +6,47 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <fragment
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/google_map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"/>
-    
-    <SearchView
+
+    <!--<SearchView
+        android:id="@+id/sv_location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/sv_location"
-        android:queryHint="Search"
-        android:iconifiedByDefault="false"
-        android:layout_margin="10dp"
-        android:elevation="5dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
         android:background="@drawable/bg_round"
-        />
+        android:elevation="5dp"
+        android:fadingEdge="none"
+        android:iconifiedByDefault="false"
+        android:queryHint="Search"
+        android:visibility="visible" >
+    </SearchView>-->
+
+
+    <fragment
+        android:id="@+id/google_map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/autocomplete_fragment"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp" />
+
+    <fragment
+        android:id="@+id/autocomplete_fragment"
+        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/common_google_signin_btn_icon_dark_normal_background"
+        android:elevation="5dp"
+        android:fadingEdge="none"
+        android:iconifiedByDefault="false"
+        android:queryHint="Search"
+        android:visibility="visible" />
 </RelativeLayout>

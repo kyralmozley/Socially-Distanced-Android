@@ -23,7 +23,7 @@ public class Utility {
 
         try {
             Log.d(TAG, "got here");
-            /*
+
             URL url = new URL("https://ec2.sociallydistanced.space/api/main/place?placeId=" + myurl);
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -34,13 +34,17 @@ public class Utility {
             is = connection.getInputStream();
 
             String contentAsString = readInputStream(is);
-            */
+
+            /*
             String[] randomContent = {
-                    "{\"prediction\":2,\"placeId\":\"ChIJpzm3HB4bdkgR5BytQRbMiCc\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,0,0,45,74,99,99,99,99,0,0,0,0,0,0,0],\"open\":true,\"queue\":3}",
-                    "{\"prediction\":1,\"placeId\":\"ChIJhRoYKUkFdkgRDL20SU9sr9E\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,4,12,25,35,44,61,75,90,95,81,72,58,32,12,1],\"open\":true,\"queue\":-1}",
-                    "{\"prediction\":0,\"placeId\":\"ChIJKZQaXxwbdkgRWLo89tC-_V8\",\"graphPoints\":[29,37,40,44,48,52,54,58,57,52,53,49,47,45,44,41,47,44,34,36,31,30,30,0],\"open\":true,\"queue\":-1}"
+                    "{\"prediction\":4,\"placeId\":\"ChIJpzm3HB4bdkgR5BytQRbMiCc\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,0,0,45,74,99,99,99,99,0,0,0,0,0,0,0],\"open\":true,\"queue\":3}",
+                    "{\"prediction\":4,\"placeId\":\"ChIJhRoYKUkFdkgRDL20SU9sr9E\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,4,12,25,35,44,61,75,90,95,81,72,58,32,12,1],\"open\":true,\"queue\":1}",
+                    "{\"prediction\":4,\"placeId\":\"ChIJKZQaXxwbdkgRWLo89tC-_V8\",\"graphPoints\":[29,37,40,44,48,52,54,58,57,52,53,49,47,45,44,41,47,44,34,36,31,30,30,0],\"open\":true,\"queue\":-1}"
             };
+
             String contentAsString = randomContent[(int)(Math.random() * 3)];
+*/
+
 
             return contentAsString;
         } finally {

@@ -81,26 +81,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     Context context = this;
 
-    private static final String TAG = "search field" ;
+    private static final String TAG = "doesThisWork" ;
     GoogleMap map;
     SupportMapFragment mapFragment;
-    SearchView searchView;
     PlacesClient placesClient;
     LinearLayout linearLayout;
 
     String placeID;
     JSONObject results;
-    public JSONObject json;
 
     Boolean done = false;
     int prediction = -1;
-
-    // define colour scheme
-    int red = Color.parseColor("#E14A4E");
-    int orange = Color.parseColor("#EE8632");
-    int yellow = Color.parseColor("#F7C117");
-    int lime = Color.parseColor("#9CBD38");
-    int green = Color.parseColor("#4FB373");
+    int queue = -1;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -152,39 +144,65 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         // get data
                         while (!done) {
                             try {
-                                TimeUnit.MICROSECONDS.sleep(200);
+                                TimeUnit.MICROSECONDS.sleep(100);
 
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
 
-
                         linearLayout.setVisibility(LinearLayout.VISIBLE);
-
                         switch (prediction) {
                             case -1:
-
+                                predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.closedbackground));
+                                predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                                predictionView.setText("This location seems to be closed");
+                                break;
                             case 0:
                                 predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
+                                predictionView.setTextColor(Color.parseColor("#FFFFFF"));
                                 predictionView.setText("You can safely social distance at this location");
                                 break;
                             case 1:
                                 predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
+                                predictionView.setTextColor(Color.parseColor("#000000"));
                                 predictionView.setText("You should be able to safely social distance at this location");
                                 break;
                             case 2:
                                 predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
+                                predictionView.setTextColor(Color.parseColor("#000000"));
                                 predictionView.setText("You may be able to safely social distance at this location");
                                 break;
                             case 3:
                                 predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
+                                predictionView.setTextColor(Color.parseColor("#000000"));
                                 predictionView.setText("It is unlikely that you will be able to safely social distance");
                                 break;
                             case 4:
                                 predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
+                                predictionView.setTextColor(Color.parseColor("#FFFFFF"));
                                 predictionView.setText("You cannot safely social distance at this location");
                                 break;
+                        }
+                        switch (queue) {
+                            case -1:
+                                break;
+                            case 0:
+                                predictionView.append("\n" + "It is unlikely that you will have to queue for entry");
+                                break;
+                            case 1:
+                                predictionView.append("\n" + "You may have to queue for entry");
+                                break;
+                            case 2:
+                                predictionView.append("\n" + "There is likely to be a short queue for entry");
+                                break;
+                            case 3:
+                                predictionView.append("\n" + "You will have to queue for entry");
+                                break;
+                            case 4:
+                                predictionView.append("\n" + "There is likely a long queue for entry");
+                                break;
+
                         }
 
                     }
@@ -206,10 +224,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private class GetJSONTask extends AsyncTask {
-        private ProgressDialog pd;
+        private ProgressDialog pd = new ProgressDialog(MainActivity.this);
 
         @Override
         protected Object doInBackground(Object[] objects) {
+
             try {
                 done = false;
                 String data = Utility.getData((String) objects[0]);
@@ -227,16 +246,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            pd = ProgressDialog.show(MainActivity.this, "", "Loading", true,
-                    false); // Create and show Progress dialog
+            pd.setMessage("Fetching Results...");
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.show();
+
         }
 
         protected void onPostExecute(String result) throws JSONException {
-            pd.dismiss();
             Log.d(TAG, "response" + results);
             done = true;
-            informationHandler informationHandler = new informationHandler();
-            prediction = informationHandler.getRaiting(results);
+            informationHandler informationHandler = new informationHandler(results);
+            prediction = informationHandler.getRaiting();
+            queue = informationHandler.getQueue();
+            pd.dismiss();
+
         }
 
     }

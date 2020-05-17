@@ -61,6 +61,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     String placeID;
     JSONObject results;
+    public JSONObject json;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,8 +89,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onPlaceSelected(@NonNull Place place) {
                         placeID = place.getId();
                         new GetJSONTask().execute(placeID);
-                        Log.d(TAG, "it worked!!!!! 4am");
-                        Log.d(TAG, String.valueOf(results));
 
                         final LatLng latLng = place.getLatLng();
                         map.addMarker(new MarkerOptions().position(latLng).title(place.getName()));
@@ -131,10 +130,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         protected Object doInBackground(Object[] objects) {
             try {
                 String data = Utility.getData((String) objects[0]);
-                onPostExecute(data);
-                Log.d(TAG, "data: " + data);
                 results = new JSONObject(data);
                 Log.d(TAG, "json: " + results);
+                onPostExecute(data);
                 return data;
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
@@ -153,6 +151,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         protected void onPostExecute(String result) throws JSONException {
             pd.dismiss();
+            Log.d(TAG, "yep we have some numbers" + results);
+
         }
 
     }

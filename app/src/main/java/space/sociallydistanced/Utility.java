@@ -22,6 +22,7 @@ public class Utility {
         InputStream is = null;
 
         try {
+
             URL url = new URL("https://ec2.sociallydistanced.space/api/main/place?placeId=" + myurl);
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -32,6 +33,7 @@ public class Utility {
             is = connection.getInputStream();
 
             String contentAsString = readInputStream(is);
+            //String contentAsString = "{\"prediction\":2,\"placeId\":\"ChIJpzm3HB4bdkgR5BytQRbMiCc\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,0,0,45,74,99,99,99,99,0,0,0,0,0,0,0],\"open\":true,\"queue\":3}";
             return contentAsString;
         } finally {
             if(is != null) {

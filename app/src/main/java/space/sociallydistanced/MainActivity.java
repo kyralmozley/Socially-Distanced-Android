@@ -211,6 +211,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected Object doInBackground(Object[] objects) {
             try {
+                done = false;
                 String data = Utility.getData((String) objects[0]);
                 results = new JSONObject(data);
                 onPostExecute(data);

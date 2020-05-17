@@ -22,8 +22,7 @@ public class Utility {
         InputStream is = null;
 
         try {
-            Log.d(TAG, "got here");
-
+            /*
             URL url = new URL("https://ec2.sociallydistanced.space/api/main/place?placeId=" + myurl);
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -35,7 +34,7 @@ public class Utility {
 
             String contentAsString = readInputStream(is);
 
-            /*
+            */
             String[] randomContent = {
                     "{\"prediction\":4,\"placeId\":\"ChIJpzm3HB4bdkgR5BytQRbMiCc\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,0,0,45,74,99,99,99,99,0,0,0,0,0,0,0],\"open\":true,\"queue\":3}",
                     "{\"prediction\":4,\"placeId\":\"ChIJhRoYKUkFdkgRDL20SU9sr9E\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,4,12,25,35,44,61,75,90,95,81,72,58,32,12,1],\"open\":true,\"queue\":1}",
@@ -43,7 +42,6 @@ public class Utility {
             };
 
             String contentAsString = randomContent[(int)(Math.random() * 3)];
-*/
 
 
             return contentAsString;

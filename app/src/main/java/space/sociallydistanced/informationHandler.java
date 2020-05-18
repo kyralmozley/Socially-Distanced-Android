@@ -2,10 +2,11 @@ package space.sociallydistanced;
 
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static android.content.ContentValues.TAG;
+import java.util.ArrayList;
 
 public class informationHandler {
     private JSONObject results;
@@ -30,8 +31,17 @@ public class informationHandler {
         return (int) results.get("queue");
     }
 
-    public int[] getForecast() throws JSONException {
-        return (int[]) results.get("graphPoints");
+    public ArrayList<Integer> getForecast() throws JSONException {
+        ArrayList<Integer> data = new ArrayList<Integer>();
+
+        JSONArray response = results.getJSONArray("graphPoints");
+        Log.d("Graph", "Got here");
+        for(int i = 0; i < response.length(); i++) {
+            data.add(response.getInt(i));
+        }
+
+        return data;
+
     }
 
 }

@@ -14,6 +14,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.icu.text.IDNA;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -38,6 +39,11 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.utils.Utils;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -72,6 +78,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -92,12 +99,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     LinearLayout linearLayout3;
     LinearLayout linearLayout4;
 
+    BarChart barChart;
+    BarData barData;
+    BarDataSet barDataSet;
+    ArrayList barEntries;
+
     String placeID;
     JSONObject results;
 
     Boolean done = false;
     int prediction = -1;
     int queue = -1;
+
+    informationHandler informationHandler;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -178,6 +192,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 feedback(5);
             }
         });
+
 
                 autocompleteSupportFragment.setOnPlaceSelectedListener(
 
@@ -280,6 +295,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                             break;
                                     }
                                 }
+
+                                barChart = findViewById(R.id.barchart);
+                                try {
+                                    getEntries();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                barDataSet = new BarDataSet(barEntries, "");
+                                barData = new BarData(barDataSet);
+                                barChart.setData(barData);
+
+
                             }
 
                             @Override
@@ -330,7 +357,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(String result) throws JSONException {
             Log.d(TAG, "response" + results);
             done = true;
-            informationHandler informationHandler = new informationHandler(results);
+            informationHandler = new informationHandler(results);
             prediction = informationHandler.getRaiting();
             queue = informationHandler.getQueue();
             pd.dismiss();
@@ -376,6 +403,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         linearLayout4.setVisibility(View.GONE);
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Thanks for your feedback!");
+    }
+
+    private void getEntries() throws JSONException {
+        informationHandler = new informationHandler(results);
+        ArrayList<Integer> values = informationHandler.getForecast();
+        Log.d(TAG, "got here");
+
+        barEntries = new ArrayList<>();
+
+        for(int i = 0; i < 24; i++) {
+            barEntries.add(new BarEntry(values.get(i), i));
+        }
     }
 
 

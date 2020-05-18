@@ -90,6 +90,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     LinearLayout linearLayout;
     LinearLayout linearLayout2;
     LinearLayout linearLayout3;
+    LinearLayout linearLayout4;
 
     String placeID;
     JSONObject results;
@@ -112,7 +113,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         linearLayout = (LinearLayout) this.findViewById(R.id.overlay);
         linearLayout2 = (LinearLayout) this.findViewById(R.id.overlay2);
         linearLayout3 = (LinearLayout) this.findViewById(R.id.feedbackButtons);
-
+        linearLayout4 = (LinearLayout) this.findViewById(R.id.noButtons);
 
         final TextView predictionView = (TextView) findViewById(R.id.distanceText);
 
@@ -125,18 +126,56 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS));
         autocompleteSupportFragment.setCountry("GB");
 
+        // define all of the buttons
         Button feedbackButtonYes = (Button) findViewById(R.id.feedbackYes);
+        Button feedbackButtonNo = (Button) findViewById(R.id.feedbackNo);
+        Button feedback1 = (Button) findViewById(R.id.feedback1);
+        Button feedback2 = (Button) findViewById(R.id.feedback2);
+        Button feedback3 = (Button) findViewById(R.id.feedback3);
+        Button feedback4 = (Button) findViewById(R.id.feedback4);
+        Button feedback5 = (Button) findViewById(R.id.feedback5);
+
+        // define all of the buttons on click functions
         feedbackButtonYes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onFeedbackYesClick();
             }
         });
-        Button feedbackButtonNo = (Button) findViewById(R.id.feedbackNo);
         feedbackButtonNo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onFeedbackClickNo();
+            }
+        });
+        feedback1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                feedback(1);
+            }
+        });
+        feedback2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                feedback(2);
+            }
+        });
+        feedback3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                feedback(3);
+            }
+        });
+        feedback4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                feedback(4);
+            }
+        });
+        feedback5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                feedback(5);
             }
         });
 
@@ -252,15 +291,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
-    private void resetFeedbackButtons() {
-        TextView tv = (TextView) findViewById(R.id.feedback);
-        tv.setText("Does this look right?");
-        LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-        tv.setLayoutParams(textParam);
-        linearLayout3.setVisibility(View.VISIBLE);
-    }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
@@ -309,6 +339,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private void resetFeedbackButtons() {
+        TextView tv = (TextView) findViewById(R.id.feedback);
+        tv.setText("Does this look right?");
+        LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        tv.setLayoutParams(textParam);
+        linearLayout3.setVisibility(View.VISIBLE);
+        linearLayout4.setVisibility(View.GONE);
+    }
 
     public void onFeedbackYesClick() {
         TextView tv = (TextView) findViewById(R.id.feedback);
@@ -319,16 +358,25 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         tv.setLayoutParams(textParam);
         tv.setText("Thanks for your feedback!");
-
         /*
         TODO: Check Location?
         TODO: SEND FEEDBACK!!!
          */
-
     }
 
     public void onFeedbackClickNo() {
-
+        TextView tv = (TextView) findViewById(R.id.feedback);
+        tv.setText("Which level looks right?");
+        linearLayout3.setVisibility(View.GONE);
+        linearLayout4.setVisibility(View.VISIBLE);
     }
+    private void feedback(int number) {
+        //TODO: actoually send feedback
+        Log.d(TAG, "Feedback recieved" + number);
+        linearLayout4.setVisibility(View.GONE);
+        TextView tv = (TextView) findViewById(R.id.feedback);
+        tv.setText("Thanks for your feedback!");
+    }
+
 
 }

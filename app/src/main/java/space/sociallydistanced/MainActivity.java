@@ -21,6 +21,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.security.keystore.UserNotAuthenticatedException;
+import android.speech.tts.TextToSpeech;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -88,6 +89,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     PlacesClient placesClient;
     LinearLayout linearLayout;
     LinearLayout linearLayout2;
+    LinearLayout linearLayout3;
 
     String placeID;
     JSONObject results;
@@ -109,6 +111,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         linearLayout = (LinearLayout) this.findViewById(R.id.overlay);
         linearLayout2 = (LinearLayout) this.findViewById(R.id.overlay2);
+        linearLayout3 = (LinearLayout) this.findViewById(R.id.feedbackButtons);
+
 
         final TextView predictionView = (TextView) findViewById(R.id.distanceText);
 
@@ -120,116 +124,141 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         autocompleteSupportFragment.getView().setBackgroundColor(Color.WHITE);
         autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS));
         autocompleteSupportFragment.setCountry("GB");
-        autocompleteSupportFragment.setOnPlaceSelectedListener(
 
-                new PlaceSelectionListener() {
+        Button feedbackButtonYes = (Button) findViewById(R.id.feedbackYes);
+        feedbackButtonYes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onFeedbackYesClick();
+            }
+        });
+        Button feedbackButtonNo = (Button) findViewById(R.id.feedbackNo);
+        feedbackButtonNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onFeedbackClickNo();
+            }
+        });
 
-                    @Override
-                    public void onPlaceSelected(@NonNull Place place) {
-                        linearLayout.setVisibility(LinearLayout.GONE);
-                        linearLayout2.setVisibility(LinearLayout.GONE);
+                autocompleteSupportFragment.setOnPlaceSelectedListener(
 
-                        predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_round));
-                        predictionView.setText("");
+                        new PlaceSelectionListener() {
 
-                        placeID = place.getId();
-                        new GetJSONTask().execute(placeID);
+                            @Override
+                            public void onPlaceSelected(@NonNull Place place) {
+                                linearLayout.setVisibility(LinearLayout.GONE);
+                                linearLayout2.setVisibility(LinearLayout.GONE);
 
-                        final LatLng latLng = place.getLatLng();
+                                predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_round));
+                                predictionView.setText("");
 
-                        if(marker[0] != null) {
-                            // only want to show one marker
-                            marker[0].remove();
-                        }
-                        marker[0] = map.addMarker(new MarkerOptions().position(latLng).title(place.getName()));
-                        //super duper hacky to get it to be slightly off center
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latLng.latitude - 0.004, latLng.longitude), 15));
+                                placeID = place.getId();
+                                new GetJSONTask().execute(placeID);
 
-                        // get data
-                        while (!done) {
-                            try {
-                                TimeUnit.MICROSECONDS.sleep(100);
+                                final LatLng latLng = place.getLatLng();
 
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                if (marker[0] != null) {
+                                    // only want to show one marker
+                                    marker[0].remove();
+                                }
+                                marker[0] = map.addMarker(new MarkerOptions().position(latLng).title(place.getName()));
+                                //super duper hacky to get it to be slightly off center
+                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latLng.latitude - 0.004, latLng.longitude), 15));
+
+                                // get data
+                                while (!done) {
+                                    try {
+                                        TimeUnit.MICROSECONDS.sleep(100);
+
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                resetFeedbackButtons();
+                                linearLayout.setVisibility(LinearLayout.VISIBLE);
+                                linearLayout2.setVisibility(LinearLayout.VISIBLE);
+
+                                if (queue == -1) {
+                                    switch (prediction) {
+                                        // no queue data, show social distancing prediction.
+                                        case -1:
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.closedbackground));
+                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                                            predictionView.setText("This location seems to be closed");
+                                            break;
+                                        case 0:
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
+                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                                            predictionView.setText("You can safely social distance at this location");
+                                            break;
+                                        case 1:
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
+                                            predictionView.setTextColor(Color.parseColor("#000000"));
+                                            predictionView.setText("You should be able to safely social distance at this location");
+                                            break;
+                                        case 2:
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
+                                            predictionView.setTextColor(Color.parseColor("#000000"));
+                                            predictionView.setText("You may be able to safely social distance at this location");
+                                            break;
+                                        case 3:
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
+                                            predictionView.setTextColor(Color.parseColor("#000000"));
+                                            predictionView.setText("It is unlikely that you will be able to safely social distance");
+                                            break;
+                                        case 4:
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
+                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                                            predictionView.setText("You cannot safely social distance at this location");
+                                            break;
+                                    }
+                                } else {
+                                    switch (queue) {
+                                        case 0:
+                                            predictionView.append("There is little to no queue for entry");
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
+                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                                            break;
+                                        case 1:
+                                            predictionView.append("It is unlikely that you will have to queue for entry");
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
+                                            predictionView.setTextColor(Color.parseColor("#000000"));
+                                            break;
+                                        case 2:
+                                            predictionView.append("There is likely to be a short queue for entry");
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
+                                            predictionView.setTextColor(Color.parseColor("#000000"));
+                                            break;
+                                        case 3:
+                                            predictionView.append("You will have to queue for entry");
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
+                                            predictionView.setTextColor(Color.parseColor("#000000"));
+                                            break;
+                                        case 4:
+                                            predictionView.append("There is likely a long queue for entry");
+                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
+                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                                            break;
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onError(@NonNull Status status) {
                             }
                         }
-
-                        linearLayout.setVisibility(LinearLayout.VISIBLE);
-                        linearLayout2.setVisibility(LinearLayout.VISIBLE);
-
-                        if(queue == -1) {
-                            switch (prediction) {
-                                // no queue data, show social distancing prediction.
-                                case -1:
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.closedbackground));
-                                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                    predictionView.setText("This location seems to be closed");
-                                    break;
-                                case 0:
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
-                                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                    predictionView.setText("You can safely social distance at this location");
-                                    break;
-                                case 1:
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
-                                    predictionView.setTextColor(Color.parseColor("#000000"));
-                                    predictionView.setText("You should be able to safely social distance at this location");
-                                    break;
-                                case 2:
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
-                                    predictionView.setTextColor(Color.parseColor("#000000"));
-                                    predictionView.setText("You may be able to safely social distance at this location");
-                                    break;
-                                case 3:
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
-                                    predictionView.setTextColor(Color.parseColor("#000000"));
-                                    predictionView.setText("It is unlikely that you will be able to safely social distance");
-                                    break;
-                                case 4:
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
-                                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                    predictionView.setText("You cannot safely social distance at this location");
-                                    break;
-                            }
-                        } else {
-                            switch (queue) {
-                                case 0:
-                                    predictionView.append("There is little to no queue for entry");
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
-                                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                    break;
-                                case 1:
-                                    predictionView.append("It is unlikely that you will have to queue for entry");
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
-                                    predictionView.setTextColor(Color.parseColor("#000000"));
-                                    break;
-                                case 2:
-                                    predictionView.append("There is likely to be a short queue for entry");
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
-                                    predictionView.setTextColor(Color.parseColor("#000000"));
-                                    break;
-                                case 3:
-                                    predictionView.append("You will have to queue for entry");
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
-                                    predictionView.setTextColor(Color.parseColor("#000000"));
-                                    break;
-                                case 4:
-                                    predictionView.append("There is likely a long queue for entry");
-                                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
-                                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                    break;
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onError(@NonNull Status status) {
-                    }
-                }
-        );
+                );
 
         mapFragment.getMapAsync(this);
+    }
+
+    private void resetFeedbackButtons() {
+        TextView tv = (TextView) findViewById(R.id.feedback);
+        tv.setText("Does this look right?");
+        LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        tv.setLayoutParams(textParam);
+        linearLayout3.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -280,5 +309,26 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+
+    public void onFeedbackYesClick() {
+        TextView tv = (TextView) findViewById(R.id.feedback);
+        linearLayout3.setVisibility(View.GONE);
+
+        LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1.0f);
+
+        tv.setLayoutParams(textParam);
+        tv.setText("Thanks for your feedback!");
+
+        /*
+        TODO: Check Location?
+        TODO: SEND FEEDBACK!!!
+         */
+
+    }
+
+    public void onFeedbackClickNo() {
+
+    }
 
 }

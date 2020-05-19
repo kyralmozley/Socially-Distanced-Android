@@ -40,6 +40,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
@@ -303,8 +305,35 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                     e.printStackTrace();
                                 }
                                 barDataSet = new BarDataSet(barEntries, "");
+                                barDataSet.setDrawValues(false);
                                 barData = new BarData(barDataSet);
                                 barChart.setData(barData);
+
+                                XAxis xAxis = barChart.getXAxis();
+                                xAxis.setDrawLabels(true);
+                                xAxis.setDrawGridLines(false);
+                                xAxis.setEnabled(true);
+                                xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+                                xAxis.setLabelCount(11, false);
+
+                                YAxis yAxis = barChart.getAxisLeft();
+                                yAxis.setDrawLabels(false);
+                                yAxis.setDrawGridLines(false);
+                                yAxis.setEnabled(false);
+
+                                YAxis yAxis1 = barChart.getAxisRight();
+                                yAxis1.setDrawGridLines(false);
+                                yAxis1.setDrawLabels(false);
+                                yAxis1.setEnabled(false);
+
+                                barChart.getDescription().setEnabled(false);
+                                barChart.getLegend().setEnabled(false);
+                                barChart.setDrawBorders(false);
+                                barChart.setDrawGridBackground(false);
+                                barChart.setDragEnabled(false);
+                                barChart.setScaleEnabled(false);
+                                barChart.setPinchZoom(false);
+                                barChart.setAutoScaleMinMaxEnabled(true);
 
 
                             }
@@ -408,12 +437,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private void getEntries() throws JSONException {
         informationHandler = new informationHandler(results);
         ArrayList<Integer> values = informationHandler.getForecast();
-        Log.d(TAG, "got here");
 
         barEntries = new ArrayList<>();
 
         for(int i = 0; i < 24; i++) {
-            barEntries.add(new BarEntry(values.get(i), i));
+            barEntries.add(new BarEntry(i, values.get(i)));
         }
     }
 

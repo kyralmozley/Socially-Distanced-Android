@@ -103,7 +103,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     BarChart barChart;
     BarData barData;
-    BarDataSet barDataSet;
+    MyBarDataSet barDataSet;
     ArrayList barEntries;
 
     String placeID;
@@ -304,8 +304,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                barDataSet = new BarDataSet(barEntries, "");
+                                barDataSet = new MyBarDataSet(barEntries, "");
                                 barDataSet.setDrawValues(false);
+
+                                barDataSet.setColors(ContextCompat.getColor(context, R.color.myRed),
+                                        ContextCompat.getColor(context, R.color.myOrange),
+                                        ContextCompat.getColor(context, R.color.myLime),
+                                        ContextCompat.getColor(context, R.color.myYellow),
+                                        ContextCompat.getColor(context, R.color.myGreen));
+
                                 barData = new BarData(barDataSet);
                                 barChart.setData(barData);
 
@@ -334,7 +341,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 barChart.setScaleEnabled(false);
                                 barChart.setPinchZoom(false);
                                 barChart.setAutoScaleMinMaxEnabled(true);
-
 
                             }
 
@@ -445,5 +451,29 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    class MyBarDataSet extends BarDataSet {
+
+        public MyBarDataSet(List<BarEntry> yVals, String label) {
+            super(yVals, label);
+        }
+        @Override
+        public int getColor(int index) {
+            try {
+                informationHandler.getForecast();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            if(getEntryForIndex(index).getY() > 70)
+                return mColors.get(0);
+            else if(getEntryForIndex(index).getY() > 50)
+                return mColors.get(1);
+            else if(getEntryForIndex(index).getY() > 30)
+                return mColors.get(2);
+            else if(getEntryForIndex(index).getY() > 10)
+                return  mColors.get(3);
+            else
+                return mColors.get(4);
+        }
+    }
 
 }

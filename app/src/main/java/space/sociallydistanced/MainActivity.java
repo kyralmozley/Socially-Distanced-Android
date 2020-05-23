@@ -1,6 +1,7 @@
 package space.sociallydistanced;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
@@ -19,6 +20,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.security.keystore.UserNotAuthenticatedException;
@@ -67,6 +69,7 @@ import com.google.android.libraries.places.widget.AutocompleteFragment;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
+import org.apache.http.params.CoreConnectionPNames;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
@@ -88,10 +91,12 @@ import java.util.zip.Inflater;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import static android.graphics.Typeface.BOLD;
+
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
     Context context = this;
-
+    ProgressDialog pd;
     private static final String TAG = "doesThisWork" ;
     GoogleMap map;
     SupportMapFragment mapFragment;
@@ -117,6 +122,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
+        pd = new ProgressDialog(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -200,6 +206,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                         new PlaceSelectionListener() {
 
+                            @RequiresApi(api = Build.VERSION_CODES.M)
                             @Override
                             public void onPlaceSelected(@NonNull Place place) {
                                 linearLayout.setVisibility(LinearLayout.GONE);
@@ -209,7 +216,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 predictionView.setText("");
 
                                 placeID = place.getId();
+                                pd.show();
                                 new GetJSONTask().execute(placeID);
+
 
                                 final LatLng latLng = place.getLatLng();
 
@@ -219,7 +228,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 }
                                 marker[0] = map.addMarker(new MarkerOptions().position(latLng).title(place.getName()));
                                 //super duper hacky to get it to be slightly off center
-                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latLng.latitude - 0.004, latLng.longitude), 15));
+                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latLng.latitude - 0.002, latLng.longitude), 15));
 
                                 // get data
                                 while (!done) {
@@ -234,6 +243,17 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 linearLayout.setVisibility(LinearLayout.VISIBLE);
                                 linearLayout2.setVisibility(LinearLayout.VISIBLE);
 
+                                TextView tv = (TextView) findViewById(R.id.placename);
+                                TextView tv2 = (TextView) findViewById(R.id.opentimes);
+                                String name = place.getName();
+                                tv.setText(name);
+                                String opentimes = informationHandler.getOpenHours();
+                                if(opentimes == null) {
+                                    tv2.setVisibility(View.GONE);
+                                } else {
+                                    tv2.setText(opentimes);
+                                    tv2.setVisibility(View.VISIBLE);
+                                }
                                 if (queue == -1) {
                                     switch (prediction) {
                                         // no queue data, show social distancing prediction.
@@ -308,9 +328,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 barDataSet.setDrawValues(false);
 
                                 barDataSet.setColors(ContextCompat.getColor(context, R.color.myRed),
+                                        ContextCompat.getColor(context, R.color.myRedOrange),
                                         ContextCompat.getColor(context, R.color.myOrange),
-                                        ContextCompat.getColor(context, R.color.myLime),
+                                        ContextCompat.getColor(context, R.color.myOrangeYellow),
                                         ContextCompat.getColor(context, R.color.myYellow),
+                                        ContextCompat.getColor(context, R.color.myYellowLime),
+                                        ContextCompat.getColor(context, R.color.myLime),
+                                        ContextCompat.getColor(context, R.color.myLimeGreen),
                                         ContextCompat.getColor(context, R.color.myGreen));
 
                                 barData = new BarData(barDataSet);
@@ -328,6 +352,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 yAxis.setDrawGridLines(false);
                                 yAxis.setEnabled(false);
 
+
                                 YAxis yAxis1 = barChart.getAxisRight();
                                 yAxis1.setDrawGridLines(false);
                                 yAxis1.setDrawLabels(false);
@@ -341,6 +366,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 barChart.setScaleEnabled(false);
                                 barChart.setPinchZoom(false);
                                 barChart.setAutoScaleMinMaxEnabled(true);
+
+                                barChart.animateY(2000);
 
                             }
 
@@ -361,11 +388,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private class GetJSONTask extends AsyncTask {
-        private ProgressDialog pd = new ProgressDialog(MainActivity.this);
+
+
 
         @Override
         protected Object doInBackground(Object[] objects) {
-
             try {
                 done = false;
                 String data = Utility.getData((String) objects[0]);
@@ -382,10 +409,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         // progress dialog.
         @Override
         protected void onPreExecute() {
+            //pd.show();
             super.onPreExecute();
-            pd.setMessage("Fetching Results...");
-            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            pd.show();
+            //pd.setMessage("Fetching Results...");
+           // pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
 
         }
 
@@ -421,8 +449,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         tv.setLayoutParams(textParam);
         tv.setText("Thanks for your feedback!");
         /*
-        TODO: Check Location?
-        TODO: SEND FEEDBACK!!!
+        TODO: send positive feedback
+
+        https://ec2.sociallydistanced.space/api/feedback/positive?placeId=ChIJhRoYKUkFdkgRDL20SU9sr9E
+
          */
     }
 
@@ -438,6 +468,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         linearLayout4.setVisibility(View.GONE);
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Thanks for your feedback!");
+        /*
+        Todo: send feedback
+        https://ec2.sociallydistanced.space/api/feedback/negative?placeId=ChIJpzm3HB4bdkgR5BytQRbMiCc&level=2
+         */
     }
 
     private void getEntries() throws JSONException {
@@ -463,16 +497,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            if(getEntryForIndex(index).getY() > 70)
+            if(getEntryForIndex(index).getY() > 80)
                 return mColors.get(0);
-            else if(getEntryForIndex(index).getY() > 50)
+            else if(getEntryForIndex(index).getY() > 70)
                 return mColors.get(1);
-            else if(getEntryForIndex(index).getY() > 30)
+            else if(getEntryForIndex(index).getY() > 60)
                 return mColors.get(2);
-            else if(getEntryForIndex(index).getY() > 10)
+            else if(getEntryForIndex(index).getY() > 50)
                 return  mColors.get(3);
-            else
+            else if(getEntryForIndex(index).getY() > 40)
                 return mColors.get(4);
+            else if(getEntryForIndex(index).getY() > 30)
+                return mColors.get(5);
+            else if(getEntryForIndex(index).getY() > 20)
+                return mColors.get(6);
+            else if(getEntryForIndex(index).getY() > 10)
+                return mColors.get(7);
+            else
+                return mColors.get(8);
         }
     }
 

@@ -52,6 +52,7 @@
 
     </LinearLayout>
 
+
     <LinearLayout
         android:id="@+id/overlay2"
         android:layout_width="match_parent"
@@ -65,9 +66,30 @@
         android:background="@drawable/bg_round"
         android:visibility="invisible">
 
+        <TextView
+            android:id="@+id/placename"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="20dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="24sp" />
+        <TextView
+            android:id="@+id/opentimes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="20dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="14sp" />
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_height="75dp"
             android:id="@+id/barchartcontainer">
 
             <com.github.mikephil.charting.charts.BarChart

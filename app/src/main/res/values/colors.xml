@@ -5,9 +5,13 @@
     <color name="colorAccent">#03DAC5</color>
     <!-- define my colours -->
     <color name="myRed">#E14A4E</color>
+    <color name="myRedOrange">#eb482b</color>
     <color name="myOrange">#EE8632</color>
+    <color name="myOrangeYellow">#ffb624</color>
     <color name="myYellow">#F7C117</color>
+    <color name="myYellowLime">#E5F64D</color>
     <color name="myLime">#9CBD38</color>
+    <color name="myLimeGreen">#6BBC38</color>
     <color name="myGreen">#4FB373</color>
     <color name="myGreyBlue">#343a40</color>
 </resources>

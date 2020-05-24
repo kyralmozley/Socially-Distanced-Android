@@ -38,6 +38,12 @@ public class Utility {
 
             */
 
+            try {
+                TimeUnit.SECONDS.sleep(3);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             String[] randomContent = {
                     "{\"prediction\":4,\"placeId\":\"ChIJpzm3HB4bdkgR5BytQRbMiCc\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,0,0,45,74,99,99,99,99,0,0,0,0,0,0,0],\"open\":true,\"queue\":3,\"openhours\":[[\"8\", \"30\"], [\"17\", \"30\"]]}",
                     "{\"prediction\":4,\"placeId\":\"ChIJhRoYKUkFdkgRDL20SU9sr9E\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,4,12,25,35,44,61,75,90,95,81,72,58,32,12,1],\"open\":true,\"queue\":1}",

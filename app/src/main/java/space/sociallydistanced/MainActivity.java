@@ -2,44 +2,22 @@ package space.sociallydistanced;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import android.accounts.NetworkErrorException;
 import android.annotation.SuppressLint;
-import android.app.Dialog;
-import android.app.Fragment;
+import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.icu.text.IDNA;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.security.keystore.UserNotAuthenticatedException;
-import android.speech.tts.TextToSpeech;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.PopupWindow;
-import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -47,56 +25,34 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.utils.Utils;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.internal.ICameraUpdateFactoryDelegate;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.LocationBias;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteFragment;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
-import org.apache.http.params.CoreConnectionPNames;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.Inflater;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import static android.graphics.Typeface.BOLD;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
     Context context = this;
-    ProgressDialog pd;
+
     private static final String TAG = "doesThisWork" ;
     GoogleMap map;
     SupportMapFragment mapFragment;
@@ -122,7 +78,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
-        pd = new ProgressDialog(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -209,6 +164,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             @RequiresApi(api = Build.VERSION_CODES.M)
                             @Override
                             public void onPlaceSelected(@NonNull Place place) {
+
                                 linearLayout.setVisibility(LinearLayout.GONE);
                                 linearLayout2.setVisibility(LinearLayout.GONE);
 
@@ -216,8 +172,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 predictionView.setText("");
 
                                 placeID = place.getId();
-                                pd.show();
-                                new GetJSONTask().execute(placeID);
+
+                                new GetJSONTask().execute(place.getId());
 
 
                                 final LatLng latLng = place.getLatLng();
@@ -230,6 +186,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 //super duper hacky to get it to be slightly off center
                                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latLng.latitude - 0.002, latLng.longitude), 15));
 
+
+
                                 // get data
                                 while (!done) {
                                     try {
@@ -239,6 +197,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                         e.printStackTrace();
                                     }
                                 }
+                                //pd.dismiss();
                                 resetFeedbackButtons();
                                 linearLayout.setVisibility(LinearLayout.VISIBLE);
                                 linearLayout2.setVisibility(LinearLayout.VISIBLE);
@@ -387,45 +346,62 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         map.animateCamera(center);
     }
 
-    private class GetJSONTask extends AsyncTask {
 
+    private class GetJSONTask extends AsyncTask<String, Void, String> {
 
+        //private ProgressDialog dialog;
 
-        @Override
-        protected Object doInBackground(Object[] objects) {
+        protected String doInBackground(String... params) {
+            String data = null;
             try {
-                done = false;
-                String data = Utility.getData((String) objects[0]);
+                String placeid = params[0];
+                data = Utility.getData(placeid);
+                Log.d(TAG, data);
                 results = new JSONObject(data);
-                onPostExecute(data);
-                return data;
+
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
-            return null;
+            Log.d(TAG, "done");
+            toDo();
+            return data;
         }
 
-        // onPreExecute called before the doInBackgroud start for display
-        // progress dialog.
-        @Override
-        protected void onPreExecute() {
-            //pd.show();
-            super.onPreExecute();
-            //pd.setMessage("Fetching Results...");
-           // pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-
-
+        protected void onProgressUpdate(Void... progress) {
+            dialog.show();
         }
 
-        protected void onPostExecute(String result) throws JSONException {
-            Log.d(TAG, "response" + results);
+        protected void toDo() {
+            Log.d(TAG, "got here");
             done = true;
             informationHandler = new informationHandler(results);
-            prediction = informationHandler.getRaiting();
-            queue = informationHandler.getQueue();
-            pd.dismiss();
+            try {
+                prediction = informationHandler.getRaiting();
+                queue = informationHandler.getQueue();
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        protected void onPostExecute(String result) {
+            Log.d(TAG, "post");
+            //dialog.dismiss();
+            return;
+        }
+
+        protected void onPreExecute() {
+            Log.d(TAG, "pre");
+            /*
+            this.dialog = ProgressDialog.show(MainActivity.this, "", "Loading", true,
+                    false);
+            this.dialog.setMessage("Fetching Results");
+            this.dialog.show();
+
+             */
 
         }
+
 
     }
 
@@ -446,14 +422,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams
                 (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1.0f);
 
+        try {
+            feedbackHandler.sendPositiveFeedback(placeID);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         tv.setLayoutParams(textParam);
         tv.setText("Thanks for your feedback!");
-        /*
-        TODO: send positive feedback
-
-        https://ec2.sociallydistanced.space/api/feedback/positive?placeId=ChIJhRoYKUkFdkgRDL20SU9sr9E
-
-         */
     }
 
     public void onFeedbackClickNo() {
@@ -463,15 +438,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         linearLayout4.setVisibility(View.VISIBLE);
     }
     private void feedback(int number) {
-        //TODO: actoually send feedback
         Log.d(TAG, "Feedback recieved" + number);
         linearLayout4.setVisibility(View.GONE);
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Thanks for your feedback!");
-        /*
-        Todo: send feedback
-        https://ec2.sociallydistanced.space/api/feedback/negative?placeId=ChIJpzm3HB4bdkgR5BytQRbMiCc&level=2
-         */
+        try {
+            feedbackHandler.sendNegativeFeedback(placeID, number);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void getEntries() throws JSONException {

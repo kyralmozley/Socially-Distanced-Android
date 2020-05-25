@@ -21,12 +21,18 @@ import javax.net.ssl.HttpsURLConnection;
 public class Utility {
     private static String TAG = "Utility Log";
 
-    public static String getData(String myurl) throws IOException {
+    /**
+     * Make API get request to socaillydistanced.space
+     * This returns a JSON of predictions made and opening data
+     * @param placeId the placeId as defined by Google Maps
+     * @return returns the JSON format as a string
+     * @throws IOException
+     */
+    public static String getData(String placeId) throws IOException {
 
         InputStream is = null;
         try {
-            /*
-            URL url = new URL("https://ec2.sociallydistanced.space/api/main/place?placeId=" + myurl);
+            URL url = new URL("https://ec2.sociallydistanced.space/api/main/place?placeId=" + placeId);
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setDoInput(true);
@@ -37,22 +43,6 @@ public class Utility {
 
             String contentAsString = readInputStream(is);
 
-            */
-            try {
-                TimeUnit.SECONDS.sleep(3);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            String[] randomContent = {
-                    "{\"prediction\":4,\"placeId\":\"ChIJpzm3HB4bdkgR5BytQRbMiCc\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,0,0,45,74,99,99,99,99,0,0,0,0,0,0,0],\"open\":true,\"queue\":3,\"openhours\":[[\"8\", \"30\"], [\"17\", \"30\"]]}",
-                    "{\"prediction\":4,\"placeId\":\"ChIJhRoYKUkFdkgRDL20SU9sr9E\",\"graphPoints\":[0,0,0,0,0,0,0,0,0,4,12,25,35,44,61,75,90,95,81,72,58,32,12,1],\"open\":true,\"queue\":1, \"openhours\":[[\"12\", \"30\"], [\"17\", \"30\"]]}",
-                    "{\"prediction\":4,\"placeId\":\"ChIJKZQaXxwbdkgRWLo89tC-_V8\",\"graphPoints\":[29,37,40,44,48,52,54,58,57,52,53,49,47,45,44,41,47,44,34,36,31,30,30,0],\"open\":true,\"queue\":-1,\"openhours\":[[\"0\", \"00\"], [\"23\", \"59\"]]}"
-            };
-
-            String contentAsString = randomContent[(int)(Math.random() * 3)];
-
-
             return contentAsString;
         } finally {
             if(is != null) {
@@ -62,6 +52,12 @@ public class Utility {
 
     }
 
+    /**
+     * Helper function to read the input stream from connection
+     * @param is input stream
+     * @return string of input
+     * @throws IOException
+     */
     private static String readInputStream(InputStream is) throws IOException {
         int n = 0;
         char[] buffer = new char[1024 * 4];

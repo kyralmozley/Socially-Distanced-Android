@@ -52,7 +52,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     Context context = this;
 
-    private static final String TAG = "doesThisWork" ;
+    private static final String TAG = "MyMainActivity" ;
     GoogleMap map;
     SupportMapFragment mapFragment;
     PlacesClient placesClient;
@@ -78,16 +78,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         final Marker[] marker = new Marker[1];
         placesClient = Places.createClient(this);
 
+        /**
+         * implement maps autocomplete search function
+         */
         final AutocompleteSupportFragment autocompleteSupportFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         autocompleteSupportFragment.getView().setBackgroundColor(Color.WHITE);
         autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS));
         autocompleteSupportFragment.setCountry("GB");
 
         /**
-         * Not sure if theres a nicer way to do this
-         * But here I define all the buttons
+         * define all of the buttons and their respective onclick functions
+         * (There is probably a nicer/more consise way to do this...)
          */
-        // define all of the buttons
         Button feedbackButtonYes = (Button) findViewById(R.id.feedbackYes);
         Button feedbackButtonNo = (Button) findViewById(R.id.feedbackNo);
         Button feedback1 = (Button) findViewById(R.id.feedback1);
@@ -151,7 +153,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 placeID = place.getId();
                                 placeName = place.getName();
                                 resetFeedbackButtons();
-
+                                /**
+                                 * Call Async task
+                                 * Once finished this gets all of the data for the place selected
+                                 */
                                 new GetJSONTask().execute(place.getId());
 
                                 final LatLng latLng = place.getLatLng();
@@ -168,6 +173,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                             @Override
                             public void onError(@NonNull Status status) {
+                                new onError(MainActivity.this);
                             }
                         }
                 );
@@ -208,9 +214,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             } catch (IOException e) {
                 e.printStackTrace();
-                //TODO: handle errors properly
+                new onError(MainActivity.this);
             } catch (JSONException e) {
                 e.printStackTrace();
+                new onError(MainActivity.this);
             }
             return null;
         }
@@ -226,6 +233,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 loadDisplay();
             } catch (JSONException e) {
                 e.printStackTrace();
+                new onError(MainActivity.this);
             }
             dialog.dismiss();
         }
@@ -287,6 +295,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
         int queue = results.getQueue();
         int prediction = results.getRaiting();
+
+        /**
+         * Decide which colours&messages to show based on value returned
+         */
         if (queue == -1) {
             switch (prediction) {
                 // no queue data, show social distancing prediction.
@@ -350,6 +362,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     break;
             }
         }
+
+        /**
+         * Create Bar Chart
+         * Add all of the data
+         * And make layout nice
+         */
         BarChart barChart = findViewById(R.id.barchart);
         ArrayList<Integer> values = results.getForecast();
         ArrayList barEntries = new ArrayList<>();
@@ -402,6 +420,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
+    /**
+     * Reset feedback buttons to make them invisble / have no text after use
+     */
     private void resetFeedbackButtons() {
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Does this look right?");
@@ -412,6 +434,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         this.findViewById(R.id.noButtons).setVisibility(View.GONE);
     }
 
+    /**
+     * If yes: then make API call to send positive feedback
+     * Show Thanks message
+     */
     public void onFeedbackYesClick() {
         TextView tv = (TextView) findViewById(R.id.feedback);
         findViewById(R.id.feedbackButtons).setVisibility(View.GONE);
@@ -426,12 +452,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         tv.setText("Thanks for your feedback!");
     }
 
+    /**
+     * If no: then ask the user to supply which level they believe is correct
+     */
     public void onFeedbackClickNo() {
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Which level looks right?");
         this.findViewById(R.id.feedbackButtons).setVisibility(View.GONE);
         this.findViewById(R.id.noButtons).setVisibility(View.VISIBLE);
     }
+
+    /**
+     * Once user has supplied number, we make negative feedback API call
+     * @param number
+     */
     private void feedback(int number) {
         Log.d(TAG, "Feedback recieved" + number);
         this.findViewById(R.id.noButtons).setVisibility(View.GONE);

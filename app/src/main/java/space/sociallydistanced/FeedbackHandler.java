@@ -14,6 +14,10 @@ import javax.net.ssl.HttpsURLConnection;
 public class FeedbackHandler {
     private static final String TAG = "feedback";
 
+    /**
+     * Send the positive feedback using post API request to sociallydistanced.space
+     * @param placeID placeId as defined by Google
+     */
     public void sendPositiveFeedback(String placeID) {
         new SendPosFeedback().execute(placeID);
     }
@@ -63,6 +67,12 @@ public class FeedbackHandler {
         }
     }
 
+    /**
+     * Send negative feedback (with correct current raiting) based on
+     * user score. Send as api post request to socaillydistanced.space
+     * @param placeID as defined by Google
+     * @param level correct raiting level, defined by user
+     */
     public void sendNegativeFeedback(String placeID, int level) {
         new SendNegFeedback().execute(placeID, String.valueOf(level));
 

@@ -10,6 +10,13 @@ class MyBarDataSet extends BarDataSet {
     public MyBarDataSet(List<BarEntry> yVals, String label) {
         super(yVals, label);
     }
+
+    /**
+     * Define the colours for the bar in bar chart
+     * this gives the nice color difference depending on Y value
+     * @param index data point entry
+     * @return int of colour
+     */
     @Override
     public int getColor(int index) {
         if(getEntryForIndex(index).getY() > 80)

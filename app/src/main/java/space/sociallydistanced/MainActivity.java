@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -249,6 +250,23 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         LinearLayout overlayLayout = findViewById(R.id.overlay2);
         overlayLayout.setVisibility(View.VISIBLE);
 
+        overlayLayout.setOnClickListener(new View.OnClickListener()
+        {
+            /**
+             * Called when a view has been clicked.
+             *
+             * @param v The view that was clicked.
+             */
+            @Override
+            public void onClick(View v) {
+                if(findViewById(R.id.noButtons).getVisibility() == View.VISIBLE) {
+                    findViewById(R.id.feedbackButtons).setVisibility(View.VISIBLE);
+                    findViewById(R.id.noButtons).setVisibility(View.GONE);
+                }
+            }
+
+        });
+
         LinearLayout raitingLayout = findViewById(R.id.overlay);
         raitingLayout.setVisibility(View.VISIBLE);
 
@@ -401,11 +419,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams
                 (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1.0f);
 
-        try {
-            FeedbackHandler.sendPositiveFeedback(placeID);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FeedbackHandler fh = new FeedbackHandler();
+        fh.sendPositiveFeedback(placeID);
+
         tv.setLayoutParams(textParam);
         tv.setText("Thanks for your feedback!");
     }
@@ -421,11 +437,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         this.findViewById(R.id.noButtons).setVisibility(View.GONE);
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Thanks for your feedback!");
-        try {
-            FeedbackHandler.sendNegativeFeedback(placeID, number);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FeedbackHandler fh = new FeedbackHandler();
+        fh.sendNegativeFeedback(placeID, number);
+
     }
+
+
 
 }

@@ -150,55 +150,58 @@
         </LinearLayout>
 
 
-
         <LinearLayout
-            android:layout_width="wrap_content"
             android:id="@+id/noButtons"
-            android:layout_marginBottom="5dp"
-            android:layout_marginRight="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:visibility="gone"
-            android:layout_height="wrap_content">
+            android:layout_marginRight="5dp"
+            android:layout_marginBottom="5dp"
+            android:visibility="gone">
 
             <Button
                 android:id="@+id/feedback1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:background="@drawable/greenbackground"
                 android:layout_weight="1"
+                android:background="@drawable/greenbackground"
                 android:text="1" />
+
             <Button
                 android:id="@+id/feedback2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:background="@drawable/limebackground"
                 android:layout_weight="1"
+                android:background="@drawable/limebackground"
                 android:text="2" />
+
             <Button
                 android:id="@+id/feedback3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/yellowbackground"
                 android:layout_margin="5dp"
                 android:layout_weight="1"
+                android:background="@drawable/yellowbackground"
                 android:text="3" />
+
             <Button
                 android:id="@+id/feedback4"
                 android:layout_width="wrap_content"
-                android:background="@drawable/orangebackground"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:layout_weight="1"
+                android:background="@drawable/orangebackground"
                 android:text="4" />
+
             <Button
                 android:id="@+id/feedback5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/redbackground"
                 android:layout_margin="5dp"
                 android:layout_weight="1"
+                android:background="@drawable/redbackground"
                 android:text="5" />
 
         </LinearLayout>

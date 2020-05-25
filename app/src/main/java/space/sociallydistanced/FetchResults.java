@@ -83,6 +83,7 @@ public class FetchResults {
      * @return String of open hours phrase
      */
     public String getOpenHours() {
+
         try {
             JSONArray response = results.getJSONArray("openhours");
             /**

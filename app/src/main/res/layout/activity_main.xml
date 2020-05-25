@@ -33,6 +33,13 @@
         android:queryHint="Search"
         android:visibility="visible" />
 
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_centerInParent="true"
+        android:visibility="invisible" />
+
     <LinearLayout
         android:id="@+id/overlay"
         android:layout_width="match_parent"
@@ -52,7 +59,6 @@
             android:textAlignment="center" />
 
     </LinearLayout>
-
 
     <LinearLayout
         android:id="@+id/overlay2"

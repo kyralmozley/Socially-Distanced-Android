@@ -5,8 +5,6 @@ import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import android.annotation.SuppressLint;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
@@ -17,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
@@ -41,7 +40,6 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,24 +55,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     GoogleMap map;
     SupportMapFragment mapFragment;
     PlacesClient placesClient;
-    LinearLayout linearLayout;
-    LinearLayout linearLayout2;
-    LinearLayout linearLayout3;
-    LinearLayout linearLayout4;
-
-    BarChart barChart;
-    BarData barData;
-    MyBarDataSet barDataSet;
-    ArrayList barEntries;
 
     String placeID;
-    JSONObject results;
+    String placeName;
 
-    Boolean done = false;
-    int prediction = -1;
-    int queue = -1;
+    FetchResults results;
 
-    informationHandler informationHandler;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -87,13 +73,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             Places.initialize(MainActivity.this, apikey);
         }
 
-        linearLayout = (LinearLayout) this.findViewById(R.id.overlay);
-        linearLayout2 = (LinearLayout) this.findViewById(R.id.overlay2);
-        linearLayout3 = (LinearLayout) this.findViewById(R.id.feedbackButtons);
-        linearLayout4 = (LinearLayout) this.findViewById(R.id.noButtons);
-
-        final TextView predictionView = (TextView) findViewById(R.id.distanceText);
-
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
         final Marker[] marker = new Marker[1];
         placesClient = Places.createClient(this);
@@ -103,6 +82,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS));
         autocompleteSupportFragment.setCountry("GB");
 
+        /**
+         * Not sure if theres a nicer way to do this
+         * But here I define all the buttons
+         */
         // define all of the buttons
         Button feedbackButtonYes = (Button) findViewById(R.id.feedbackYes);
         Button feedbackButtonNo = (Button) findViewById(R.id.feedbackNo);
@@ -156,25 +139,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-
-                autocompleteSupportFragment.setOnPlaceSelectedListener(
+        autocompleteSupportFragment.setOnPlaceSelectedListener(
 
                         new PlaceSelectionListener() {
+
 
                             @RequiresApi(api = Build.VERSION_CODES.M)
                             @Override
                             public void onPlaceSelected(@NonNull Place place) {
-
-                                linearLayout.setVisibility(LinearLayout.GONE);
-                                linearLayout2.setVisibility(LinearLayout.GONE);
-
-                                predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.bg_round));
-                                predictionView.setText("");
-
                                 placeID = place.getId();
+                                placeName = place.getName();
+                                resetFeedbackButtons();
 
                                 new GetJSONTask().execute(place.getId());
-
 
                                 final LatLng latLng = place.getLatLng();
 
@@ -185,148 +162,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                                 marker[0] = map.addMarker(new MarkerOptions().position(latLng).title(place.getName()));
                                 //super duper hacky to get it to be slightly off center
                                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latLng.latitude - 0.002, latLng.longitude), 15));
-
-
-
-                                // get data
-                                while (!done) {
-                                    try {
-                                        TimeUnit.MICROSECONDS.sleep(100);
-
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                //pd.dismiss();
-                                resetFeedbackButtons();
-                                linearLayout.setVisibility(LinearLayout.VISIBLE);
-                                linearLayout2.setVisibility(LinearLayout.VISIBLE);
-
-                                TextView tv = (TextView) findViewById(R.id.placename);
-                                TextView tv2 = (TextView) findViewById(R.id.opentimes);
-                                String name = place.getName();
-                                tv.setText(name);
-                                String opentimes = informationHandler.getOpenHours();
-                                if(opentimes == null) {
-                                    tv2.setVisibility(View.GONE);
-                                } else {
-                                    tv2.setText(opentimes);
-                                    tv2.setVisibility(View.VISIBLE);
-                                }
-                                if (queue == -1) {
-                                    switch (prediction) {
-                                        // no queue data, show social distancing prediction.
-                                        case -1:
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.closedbackground));
-                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                            predictionView.setText("This location seems to be closed");
-                                            break;
-                                        case 0:
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
-                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                            predictionView.setText("You can safely social distance at this location");
-                                            break;
-                                        case 1:
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
-                                            predictionView.setTextColor(Color.parseColor("#000000"));
-                                            predictionView.setText("You should be able to safely social distance at this location");
-                                            break;
-                                        case 2:
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
-                                            predictionView.setTextColor(Color.parseColor("#000000"));
-                                            predictionView.setText("You may be able to safely social distance at this location");
-                                            break;
-                                        case 3:
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
-                                            predictionView.setTextColor(Color.parseColor("#000000"));
-                                            predictionView.setText("It is unlikely that you will be able to safely social distance");
-                                            break;
-                                        case 4:
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
-                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                            predictionView.setText("You cannot safely social distance at this location");
-                                            break;
-                                    }
-                                } else {
-                                    switch (queue) {
-                                        case 0:
-                                            predictionView.append("There is little to no queue for entry");
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
-                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                            break;
-                                        case 1:
-                                            predictionView.append("It is unlikely that you will have to queue for entry");
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
-                                            predictionView.setTextColor(Color.parseColor("#000000"));
-                                            break;
-                                        case 2:
-                                            predictionView.append("There is likely to be a short queue for entry");
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
-                                            predictionView.setTextColor(Color.parseColor("#000000"));
-                                            break;
-                                        case 3:
-                                            predictionView.append("You will have to queue for entry");
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
-                                            predictionView.setTextColor(Color.parseColor("#000000"));
-                                            break;
-                                        case 4:
-                                            predictionView.append("There is likely a long queue for entry");
-                                            predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
-                                            predictionView.setTextColor(Color.parseColor("#FFFFFF"));
-                                            break;
-                                    }
-                                }
-
-                                barChart = findViewById(R.id.barchart);
-                                try {
-                                    getEntries();
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                barDataSet = new MyBarDataSet(barEntries, "");
-                                barDataSet.setDrawValues(false);
-
-                                barDataSet.setColors(ContextCompat.getColor(context, R.color.myRed),
-                                        ContextCompat.getColor(context, R.color.myRedOrange),
-                                        ContextCompat.getColor(context, R.color.myOrange),
-                                        ContextCompat.getColor(context, R.color.myOrangeYellow),
-                                        ContextCompat.getColor(context, R.color.myYellow),
-                                        ContextCompat.getColor(context, R.color.myYellowLime),
-                                        ContextCompat.getColor(context, R.color.myLime),
-                                        ContextCompat.getColor(context, R.color.myLimeGreen),
-                                        ContextCompat.getColor(context, R.color.myGreen));
-
-                                barData = new BarData(barDataSet);
-                                barChart.setData(barData);
-
-                                XAxis xAxis = barChart.getXAxis();
-                                xAxis.setDrawLabels(true);
-                                xAxis.setDrawGridLines(false);
-                                xAxis.setEnabled(true);
-                                xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-                                xAxis.setLabelCount(11, false);
-
-                                YAxis yAxis = barChart.getAxisLeft();
-                                yAxis.setDrawLabels(false);
-                                yAxis.setDrawGridLines(false);
-                                yAxis.setEnabled(false);
-
-
-                                YAxis yAxis1 = barChart.getAxisRight();
-                                yAxis1.setDrawGridLines(false);
-                                yAxis1.setDrawLabels(false);
-                                yAxis1.setEnabled(false);
-
-                                barChart.getDescription().setEnabled(false);
-                                barChart.getLegend().setEnabled(false);
-                                barChart.setDrawBorders(false);
-                                barChart.setDrawGridBackground(false);
-                                barChart.setDragEnabled(false);
-                                barChart.setScaleEnabled(false);
-                                barChart.setPinchZoom(false);
-                                barChart.setAutoScaleMinMaxEnabled(true);
-
-                                barChart.animateY(2000);
 
                             }
 
@@ -347,83 +182,227 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    private class GetJSONTask extends AsyncTask<String, Void, String> {
+    private class GetJSONTask extends AsyncTask<String, Void, Void> {
 
-        //private ProgressDialog dialog;
+        private ProgressDialog dialog;
 
-        protected String doInBackground(String... params) {
-            String data = null;
+        /**\
+         * Task to do in background:
+         * Make API Call
+         * Fetch results to then show
+         * @param params placeId
+         * @return nothing
+         */
+        protected Void doInBackground(String... params) {
+            Log.d(TAG, "background");
             try {
-                String placeid = params[0];
-                data = Utility.getData(placeid);
-                Log.d(TAG, data);
-                results = new JSONObject(data);
+                results = new FetchResults(params[0]);
+                Log.d(TAG,
+                        "Raiting " + results.getRaiting() +
+                                " Forecast: " + results.getForecast() +
+                                " Queue: " + results.getQueue() +
+                                "Open Hours: " + results.getOpenHours() +
+                                "Is open: " + results.getIsOpen()
+                );
 
-            } catch (IOException | JSONException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
-            }
-            Log.d(TAG, "done");
-            toDo();
-            return data;
-        }
-
-        protected void onProgressUpdate(Void... progress) {
-            dialog.show();
-        }
-
-        protected void toDo() {
-            Log.d(TAG, "got here");
-            done = true;
-            informationHandler = new informationHandler(results);
-            try {
-                prediction = informationHandler.getRaiting();
-                queue = informationHandler.getQueue();
+                //TODO: handle errors properly
             } catch (JSONException e) {
                 e.printStackTrace();
-                return;
             }
+            return null;
         }
 
-        protected void onPostExecute(String result) {
+        /**
+         * on post execute need to show all of the relevant views
+         * dismiss the dialog box
+         * @param result
+         */
+        protected void onPostExecute(Void result) {
             Log.d(TAG, "post");
-            //dialog.dismiss();
-            return;
+            try {
+                loadDisplay();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            dialog.dismiss();
         }
 
+        /**
+         * show dialog box
+         */
         protected void onPreExecute() {
             Log.d(TAG, "pre");
-            /*
-            this.dialog = ProgressDialog.show(MainActivity.this, "", "Loading", true,
-                    false);
-            this.dialog.setMessage("Fetching Results");
-            this.dialog.show();
-
-             */
-
+            dialog = new ProgressDialog(MainActivity.this);
+            dialog.setMessage("Fetching Results");
+            dialog.show();
         }
 
 
     }
 
+    public void loadDisplay() throws JSONException {
+        /**
+         * Set the layout cards to visisble
+         */
+        LinearLayout overlayLayout = findViewById(R.id.overlay2);
+        overlayLayout.setVisibility(View.VISIBLE);
+
+        LinearLayout raitingLayout = findViewById(R.id.overlay);
+        raitingLayout.setVisibility(View.VISIBLE);
+
+        TextView predictionView = (TextView) findViewById(R.id.distanceText);
+        predictionView.setText("");
+        /**
+         * Update text to that given by results
+         */
+        TextView tv = (TextView) findViewById(R.id.placename);
+        TextView tv2 = (TextView) findViewById(R.id.opentimes);
+        tv.setText(placeName);
+        String opentimes = results.getOpenHours();
+        if(opentimes == null) {
+            tv2.setVisibility(View.GONE);
+        } else {
+            tv2.setText(opentimes);
+            tv2.setVisibility(View.VISIBLE);
+        }
+        int queue = results.getQueue();
+        int prediction = results.getRaiting();
+        if (queue == -1) {
+            switch (prediction) {
+                // no queue data, show social distancing prediction.
+                case -1:
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.closedbackground));
+                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                    predictionView.setText("This location seems to be closed");
+                    break;
+                case 0:
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
+                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                    predictionView.setText("You can safely social distance at this location");
+                    break;
+                case 1:
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
+                    predictionView.setTextColor(Color.parseColor("#000000"));
+                    predictionView.setText("You should be able to safely social distance at this location");
+                    break;
+                case 2:
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
+                    predictionView.setTextColor(Color.parseColor("#000000"));
+                    predictionView.setText("You may be able to safely social distance at this location");
+                    break;
+                case 3:
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
+                    predictionView.setTextColor(Color.parseColor("#000000"));
+                    predictionView.setText("It is unlikely that you will be able to safely social distance");
+                    break;
+                case 4:
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
+                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                    predictionView.setText("You cannot safely social distance at this location");
+                    break;
+            }
+        } else {
+            switch (queue) {
+                case 0:
+                    predictionView.append("There is little to no queue for entry");
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.greenbackground));
+                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                    break;
+                case 1:
+                    predictionView.append("It is unlikely that you will have to queue for entry");
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.limebackground));
+                    predictionView.setTextColor(Color.parseColor("#000000"));
+                    break;
+                case 2:
+                    predictionView.append("There is likely to be a short queue for entry");
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.yellowbackground));
+                    predictionView.setTextColor(Color.parseColor("#000000"));
+                    break;
+                case 3:
+                    predictionView.append("You will have to queue for entry");
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.orangebackground));
+                    predictionView.setTextColor(Color.parseColor("#000000"));
+                    break;
+                case 4:
+                    predictionView.append("There is likely a long queue for entry");
+                    predictionView.setBackground(ContextCompat.getDrawable(context, R.drawable.redbackground));
+                    predictionView.setTextColor(Color.parseColor("#FFFFFF"));
+                    break;
+            }
+        }
+        BarChart barChart = findViewById(R.id.barchart);
+        ArrayList<Integer> values = results.getForecast();
+        ArrayList barEntries = new ArrayList<>();
+        for(int i=0; i<24;i++) {
+            barEntries.add(new BarEntry(i, values.get(i)));
+        }
+        MyBarDataSet barDataSet = new MyBarDataSet(barEntries, "");
+        barDataSet.setDrawValues(false);
+        barDataSet.setColors(ContextCompat.getColor(context, R.color.myRed),
+                ContextCompat.getColor(context, R.color.myRedOrange),
+                ContextCompat.getColor(context, R.color.myOrange),
+                ContextCompat.getColor(context, R.color.myOrangeYellow),
+                ContextCompat.getColor(context, R.color.myYellow),
+                ContextCompat.getColor(context, R.color.myYellowLime),
+                ContextCompat.getColor(context, R.color.myLime),
+                ContextCompat.getColor(context, R.color.myLimeGreen),
+                ContextCompat.getColor(context, R.color.myGreen));
+
+        BarData barData = new BarData(barDataSet);
+        barChart.setData(barData);
+
+        XAxis xAxis = barChart.getXAxis();
+        xAxis.setDrawLabels(true);
+        xAxis.setDrawGridLines(false);
+        xAxis.setEnabled(true);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setLabelCount(11, false);
+
+        YAxis yAxis = barChart.getAxisLeft();
+        yAxis.setDrawLabels(false);
+        yAxis.setDrawGridLines(false);
+        yAxis.setEnabled(false);
+
+
+        YAxis yAxis1 = barChart.getAxisRight();
+        yAxis1.setDrawGridLines(false);
+        yAxis1.setDrawLabels(false);
+        yAxis1.setEnabled(false);
+
+        barChart.getDescription().setEnabled(false);
+        barChart.getLegend().setEnabled(false);
+        barChart.setDrawBorders(false);
+        barChart.setDrawGridBackground(false);
+        barChart.setDragEnabled(false);
+        barChart.setScaleEnabled(false);
+        barChart.setPinchZoom(false);
+        barChart.setAutoScaleMinMaxEnabled(true);
+
+        barChart.animateY(2000);
+
+
+    }
     private void resetFeedbackButtons() {
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Does this look right?");
         LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
         tv.setLayoutParams(textParam);
-        linearLayout3.setVisibility(View.VISIBLE);
-        linearLayout4.setVisibility(View.GONE);
+        this.findViewById(R.id.feedbackButtons).setVisibility(View.VISIBLE);
+        this.findViewById(R.id.noButtons).setVisibility(View.GONE);
     }
 
     public void onFeedbackYesClick() {
         TextView tv = (TextView) findViewById(R.id.feedback);
-        linearLayout3.setVisibility(View.GONE);
+        findViewById(R.id.feedbackButtons).setVisibility(View.GONE);
 
         LinearLayout.LayoutParams textParam = new LinearLayout.LayoutParams
                 (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1.0f);
 
         try {
-            feedbackHandler.sendPositiveFeedback(placeID);
+            FeedbackHandler.sendPositiveFeedback(placeID);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -434,62 +413,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void onFeedbackClickNo() {
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Which level looks right?");
-        linearLayout3.setVisibility(View.GONE);
-        linearLayout4.setVisibility(View.VISIBLE);
+        this.findViewById(R.id.feedbackButtons).setVisibility(View.GONE);
+        this.findViewById(R.id.noButtons).setVisibility(View.VISIBLE);
     }
     private void feedback(int number) {
         Log.d(TAG, "Feedback recieved" + number);
-        linearLayout4.setVisibility(View.GONE);
+        this.findViewById(R.id.noButtons).setVisibility(View.GONE);
         TextView tv = (TextView) findViewById(R.id.feedback);
         tv.setText("Thanks for your feedback!");
         try {
-            feedbackHandler.sendNegativeFeedback(placeID, number);
+            FeedbackHandler.sendNegativeFeedback(placeID, number);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void getEntries() throws JSONException {
-        informationHandler = new informationHandler(results);
-        ArrayList<Integer> values = informationHandler.getForecast();
-
-        barEntries = new ArrayList<>();
-
-        for(int i = 0; i < 24; i++) {
-            barEntries.add(new BarEntry(i, values.get(i)));
-        }
-    }
-
-    class MyBarDataSet extends BarDataSet {
-
-        public MyBarDataSet(List<BarEntry> yVals, String label) {
-            super(yVals, label);
-        }
-        @Override
-        public int getColor(int index) {
-            try {
-                informationHandler.getForecast();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            if(getEntryForIndex(index).getY() > 80)
-                return mColors.get(0);
-            else if(getEntryForIndex(index).getY() > 70)
-                return mColors.get(1);
-            else if(getEntryForIndex(index).getY() > 60)
-                return mColors.get(2);
-            else if(getEntryForIndex(index).getY() > 50)
-                return  mColors.get(3);
-            else if(getEntryForIndex(index).getY() > 40)
-                return mColors.get(4);
-            else if(getEntryForIndex(index).getY() > 30)
-                return mColors.get(5);
-            else if(getEntryForIndex(index).getY() > 20)
-                return mColors.get(6);
-            else if(getEntryForIndex(index).getY() > 10)
-                return mColors.get(7);
-            else
-                return mColors.get(8);
         }
     }
 

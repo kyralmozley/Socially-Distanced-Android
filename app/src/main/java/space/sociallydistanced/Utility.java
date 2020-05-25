@@ -22,9 +22,10 @@ public class Utility {
     private static String TAG = "Utility Log";
 
     public static String getData(String myurl) throws IOException {
+
         InputStream is = null;
         try {
-            /*
+
             URL url = new URL("https://ec2.sociallydistanced.space/api/main/place?placeId=" + myurl);
             HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -36,8 +37,7 @@ public class Utility {
 
             String contentAsString = readInputStream(is);
 
-            */
-
+            /*
             try {
                 TimeUnit.SECONDS.sleep(3);
             } catch (InterruptedException e) {
@@ -51,7 +51,7 @@ public class Utility {
             };
 
             String contentAsString = randomContent[(int)(Math.random() * 3)];
-
+            */
 
             return contentAsString;
         } finally {

@@ -7,6 +7,6 @@ We provide real-time predictions as to whether or not socially distancing is cur
 
 
 ### Technical Details
-The application is built in Java and is currently awaiting approval from the Google play store and will be available on devices running KitKat and above. This is the app version of [sociallydistanced.space](htttps://sociallydistanced.space). Using a combination of custom-generated datasets and user feedback, we use AI to be able to make a prediction about a given location.
+The application is built in Java and is currently awaiting approval from the Google play store and will be available on devices running KitKat and above. This is the app version of [sociallydistanced.space](https://sociallydistanced.space). Using a combination of custom-generated datasets and user feedback, we use AI to be able to make a prediction about a given location.
 
 ![Image](https://mozley.tech/img/sociallydistancedapp.png)
